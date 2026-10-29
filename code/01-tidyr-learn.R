@@ -129,6 +129,8 @@ us_rent_income |>
 
 
 # Pivot longer advanced --------------------------------------------------
+
+# Controlling the data type of the new columns
 example_eagle_nests |>
     pivot_longer(
         cols = -region,
@@ -151,4 +153,48 @@ example_eagle_nests |>
         values_transform = list(
             number_nests = \(x) as.integer(x)
         )
+    )
+
+
+# Where there are extra information in the columns names to be pivoted longer
+
+# Where the column names have prefix which are not important.
+example_gymnastics_1 |> # This a dataset from the dcldata
+    pivot_longer(
+        cols = -country,
+        names_to = 'event',
+        values_to = 'score',
+        names_prefix = 'score_', #  This removes the prexit from the variable values
+    ) # Note here that the values that we need for the variable to be created are vault and floor; so we can do away with  'score_'
+
+
+# Where the column names have multiple values. Each value should go into different variable
+
+example_gymnastics_2 |> # This is another  dataset from the dcldata
+    pivot_longer(
+        cols = -country,
+        names_to = c('event', "year"), # Create two variables
+        names_sep = "_", # This is what separates the two variables
+        values_to = "score",
+    )
+
+example_gymnastics_3 |>
+    pivot_longer(
+        cols = -country,
+        names_to = c('event', "year", 'gender'), # Create 3 variables
+        values_to = 'score', # This is what separates them
+        names_sep = '_'
+    )
+
+
+example_gymnastics_4 |>
+    pivot_longer(
+        cols = -country,
+        names_to = 'event',
+        values_to = 'score'
+    ) |>
+    extract(
+        col = event,
+        into = c('event', "year"), # Two variables
+        regex = '([A-Za-z]+)(\\d+)' # The brackets indicate there two groups representing the two variables
     )
