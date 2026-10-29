@@ -126,3 +126,29 @@ us_rent_income |>
         values_from = c(estimate, moe), # Note that the variables to be created  each has two corresponding values contained in the estimate and moe columns
         names_vary = 'fastest' # This controls the order in which the new columns appears. Here based on the order of the estimate and income variables. The estimate come first followed by the the income
     )
+
+
+# Pivot longer advanced --------------------------------------------------
+example_eagle_nests |>
+    pivot_longer(
+        cols = -region,
+        names_to = 'year',
+        values_to = 'number_nests',
+        names_transform = list(
+            year = as.integer, # This named list allows the transformation of multiple columns with specific type of transformation.
+            number_nests = as.integer # The function is without () because you telling pivot which function to apply to the values of the year variable.
+        )
+    )
+
+example_eagle_nests |>
+    pivot_longer(
+        cols = -region,
+        names_to = 'year',
+        values_to = 'number_nests',
+        names_transform = list(
+            year = \(x) as.integer(x) # You can also use the anonymous function syntax
+        ),
+        values_transform = list(
+            number_nests = \(x) as.integer(x)
+        )
+    )
