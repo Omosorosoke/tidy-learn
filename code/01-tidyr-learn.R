@@ -1,5 +1,5 @@
 # load library -----------------------------------------------------------
-library('tidyverse')
+library(tidyverse)
 library(fs) # To use the dir_create function for creating folder
 library(remotes) # To use the install_github() function for the purpose of loading the dcldata
 library(dcldata) # The data challenge dataset package
@@ -198,3 +198,75 @@ example_gymnastics_4 |>
         into = c('event', "year"), # Two variables
         regex = '([A-Za-z]+)(\\d+)' # The brackets indicate there two groups representing the two variables
     )
+
+
+table2 |>
+    pivot_wider(names_from = type, values_from = count, names_vary = 'fastest')
+
+
+# Advanced Pivot wider ---------------------------------------------------
+
+# Pivot wider using the value_fn argument. 
+# I used three dataset to illustrate this.
+
+sales_data <- tibble(
+    employee = c("John", "Mary", "John", "Mary", "John"),
+    region = c("North", "North", "South", "South", "North"),
+    sales = c(100, 150, 200, 250, 120)
+)
+
+sales_data |> pivot_wider(names_from = region, values_from = sales) # There is a problem for John. Here each combination of the identifier column and the names-from combination expect to have a single value for John's north sales value but got 2.
+
+sales_data |>
+    summarise(
+        n = n(),
+        .by = c(employee, region) # This confirms the problem above with John-North combination having 2 sales values
+    )
+
+sales_data |>
+    pivot_wider(names_from = region, values_from = sales, values_fn = mean) # There is resolved with a mean value for the two sales values a
+
+
+warpbreaks |>
+    distinct()
+warpbreaks
+
+wb <- as_tibble(warpbreaks) # Converts the  data frame into tibble
+
+
+see <- wb |>
+    pivot_wider(names_from = tension, values_from = breaks) # Pivot wider expects one value per cell for L, M, and H but got nine and therefore created a list.
+
+
+# The following codes further confirm the problem
+str(see)
+
+wb |>
+    summarise(
+        n = n(),
+        .by = c(wool, tension)
+    ) |>
+    filter(n > 1)
+
+wb |>
+    pivot_wider(names_from = tension, values_from = breaks, values_fn = mean) # Pivot wider expects one value per cell for L, M, and H but got nine and therefore created a list.
+
+
+cms_patient_care # This is untidy becuause the score columns contains more than one type of score as indicated by the measured-abbr(beliefs_addressed, composite_process, dyspnea_screening )
+
+
+cms_patient_care |>
+    distinct(measure_abbr) # Pivot wider on  this variables should create nine columns
+
+cms_patient_care |>
+summarise(
+    n = n(), .by = c(measure_abbr, score) # For each observation there are more than value for certain variables 
+)
+
+cms_patient_care |>
+    pivot_wider(
+        names_from = measure_abbr,
+        values_from = score,
+        values_fn = ~ mean(.x, na.rm = TRUE) # We apply mean 
+
+View(cms_patient_care)
