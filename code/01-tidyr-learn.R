@@ -200,13 +200,23 @@ example_gymnastics_4 |>
     )
 
 
+who2 |>
+    pivot_longer(
+        cols = !c('country', 'year'),
+        names_sep = '_',
+        names_to = c('method', 'gender', 'age'),
+        values_to = 'cases',
+        values_drop_na = TRUE
+    )
+
+
 table2 |>
     pivot_wider(names_from = type, values_from = count, names_vary = 'fastest')
 
 
 # Advanced Pivot wider ---------------------------------------------------
 
-# Pivot wider using the value_fn argument. 
+# Pivot wider using the value_fn argument.
 # I used three dataset to illustrate this.
 
 sales_data <- tibble(
@@ -259,14 +269,63 @@ cms_patient_care |>
     distinct(measure_abbr) # Pivot wider on  this variables should create nine columns
 
 cms_patient_care |>
-summarise(
-    n = n(), .by = c(measure_abbr, score) # For each observation there are more than value for certain variables 
-)
+    summarise(
+        n = n(),
+        .by = c(measure_abbr, score) # For each observation there are more than value for certain variables
+    )
 
-cms_patient_care |>
+cms_patient_care_tidy <- cms_patient_care |>
     pivot_wider(
         names_from = measure_abbr,
         values_from = score,
-        values_fn = ~ mean(.x, na.rm = TRUE) # We apply mean 
+        values_fn = list(
+            me = ~ mean(.x, na.rm = TRUE),
+            med = ~ median(.x, na.rm = TRUE)
+        )
+    ) # I apply mean to address the duplicates in those  cell
 
-View(cms_patient_care)
+# Separate wider delimiter/position/regrex -------------------------------
+
+?table3 # Country, year, cases, and population
+
+table3 |>
+    separate_wider_delim(
+        cols = rate,
+        delim = "/",
+        names = c("rate", "population")
+    )
+
+
+who2 |>
+    pivot_longer(
+        cols = !c('country', 'year'),
+        names_to = 'key',
+        values_to = 'cases',
+        values_drop_na = TRUE
+    ) |>
+    separate_wider_delim(
+        cols = key,
+        delim = '_',
+        names = c('method', 'gender', 'age'),
+    )
+
+who2 |>
+    pivot_longer(
+        cols = !c('country', 'year'),
+        names_to = 'key',
+        values_to = 'cases',
+        values_drop_na = TRUE
+    ) |>
+    separate_wider_regex(
+        cols = key,
+        patterns = c(
+            method = '[a-z]+',
+            '_',
+            gender = '[mf]+',
+            '_',
+            age = '\\d+'
+        )
+    )
+
+# seperate wider delim - where a string value contains many variables
+# Pivod wider - to values into columns. where a column has values that represent multiple categotical values
